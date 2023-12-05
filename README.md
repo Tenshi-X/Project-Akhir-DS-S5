@@ -1,6 +1,6 @@
 # Project-Akhir-DS-S5
 
-Rekomendasi Penerimaan Pendaftaran Perawat
+Rekomendasi Penerimaan Pendaftaran Perawat <br>
 Algoritma: Artificial Neural Network
 
 Anggota:
