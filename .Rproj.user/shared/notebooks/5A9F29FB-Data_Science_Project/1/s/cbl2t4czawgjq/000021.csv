@@ -1,0 +1,3 @@
+"0","output <- compute(n, data_testing[,-9])"
+"0","results <- data.frame(DataAsli=data_testing$Class, Prediksi=output$net.result)"
+"0","roundedresults <- sapply(results, round, digits=0)"

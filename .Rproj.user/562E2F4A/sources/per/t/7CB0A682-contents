@@ -1,0 +1,174 @@
+---
+title: "Project Data Science"
+author: "Anindia Azzahra"
+date: "2023-12-04"
+output: html_document
+---
+
+```{r}
+library(dslabs)
+library(tidyverse)
+library(dplyr)
+library(here)
+library(readxl)
+library(utils)
+library(vroom)
+library(tidytext)
+library(readr)
+library(here)
+library(keras)
+library(caret)
+library(dplyr)
+library(neuralnet)
+```
+
+```{r}
+data_testing <- read_csv(here("nursery_testing.csv"))
+head(data_testing)
+```
+
+```{r}
+unique(data_testing$Parent)
+unique(data_testing$Has_Nurs)
+unique(data_testing$Form)
+unique(data_testing$Children)
+unique(data_testing$Housing)
+unique(data_testing$Finance)
+unique(data_testing$Social)
+unique(data_testing$Health)
+unique(data_testing$Class)
+```
+
+```{r}
+data_training <- read_csv(here("nursery_training.csv"))
+head(data_training)
+```
+
+```{r}
+unique(data_training$Parent)
+unique(data_training$Has_Nurs)
+unique(data_training$Form)
+unique(data_training$Children)
+unique(data_training$Housing)
+unique(data_training$Finance)
+unique(data_training$Social)
+unique(data_training$Health)
+unique(data_training$Class)
+```
+## Convert Data Training to Numeric
+```{r}
+names(data_training)
+convert_column_to_index <- function(column_data, reference_vector) {
+  return(match(column_data, reference_vector) - 1)
+}
+
+columns_to_process <- names(data_training)
+
+reference_vectors <- lapply(data_training[, columns_to_process, drop = FALSE], unique)
+
+for (col_name in columns_to_process) {
+  reference_vector <- reference_vectors[[col_name]]
+  reference_vectors
+  data_training[[col_name]] <- convert_column_to_index(data_training[[col_name]], reference_vector)
+}
+
+```
+```{r}
+colSums(is.na(data_training))
+
+```
+
+
+
+## Convert Data Testing to Numeric
+```{r}
+names(data_testing)
+convert_column_to_index <- function(column_data, reference_vector) {
+  return(match(column_data, reference_vector) - 1)
+}
+
+columns_to_process <- names(data_testing)
+
+reference_vectors <- lapply(data_testing[, columns_to_process, drop = FALSE], unique)
+
+reference_vector
+
+for (col_name in columns_to_process) {
+  reference_vector <- reference_vectors[[col_name]]
+  data_testing[[col_name]] <- convert_column_to_index(data_testing[[col_name]], reference_vector)
+}
+
+```
+```{r}
+
+colSums(is.na(data_testing))
+
+```
+
+
+## Normalisasi Data Testing
+```{r}
+for (i in names(data_testing)) {
+  data_testing[i] <- (data_testing[i] - min(data_testing[i]))/(max(data_testing[i]) - min(data_testing[i]))
+}
+```
+
+## Normalisasi Data Training
+```{r}
+for (i in names(data_training)) {
+  data_training[i] <- (data_training[i] - min(data_training[i]))/(max(data_training[i]) - min(data_training[i]))
+}
+```
+
+```{r}
+n <- neuralnet(
+  Class~.,
+               data = data_training,
+               hidden = c(5,3),
+               err.fct = "sse",
+               linear.output = FALSE)
+plot(n)
+```
+
+```{r}
+output <- compute(n, data_testing[,-9])
+results <- data.frame(DataAsli=data_testing$Class, Prediksi=output$net.result)
+roundedresults <- sapply(results, round, digits=0)
+```
+
+```{r}
+actual <- round(data_testing$Class, digits = 0)
+prediction <- round(output$net.result, digits = 0)
+mtab <- table(actual,prediction)
+confusionMatrix(mtab)
+```
+
+```{r}
+actual <- data_testing$Class
+prediction <- output$net.result
+colnames(prediction) = c("hasil")
+
+# Mengelompokkan hasil prediksi ke dalam kategori
+prediction <- ifelse(prediction >= 0 & prediction < 0.2, 0,
+                     ifelse(prediction >= 0.2 & prediction < 0.4, 0.25,
+                            ifelse(prediction >= 0.4 & prediction < 0.8, 0.5,
+                                   ifelse(prediction >= 0.4 & prediction < 0.8, 0.75,
+                                          ifelse(prediction >= 0.8 & prediction <= 1, 1,NA)
+                                   )
+                            )
+                     )
+)
+
+# Buatlah faktor dari hasil prediksi
+prediction <- factor(prediction, levels = c(0, 0.25, 0.5, 0.75, 1), labels = c(0, 0.25,0.5,0.75,1))
+
+table(actual)
+table(prediction)
+
+
+# Buat confusion matrix
+mtab <- table(actual, prediction)
+confusionMatrix(mtab)
+
+```
+

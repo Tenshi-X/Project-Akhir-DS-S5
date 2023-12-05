@@ -1,0 +1,3 @@
+"0","for (i in names(data_testing)) {"
+"0","  data_testing[i] <- (data_testing[i] - min(data_testing[i]))/(max(data_testing[i]) - min(data_testing[i]))"
+"0","}"

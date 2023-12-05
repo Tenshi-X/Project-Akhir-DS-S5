@@ -1,0 +1,7 @@
+"0","n <- neuralnet("
+"0","  Class~.,"
+"0","               data = data_training,"
+"0","               hidden = c(5,3),"
+"0","               err.fct = ""sse"","
+"0","               linear.output = FALSE)"
+"0","plot(n)"
